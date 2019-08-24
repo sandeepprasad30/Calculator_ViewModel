@@ -1,7 +1,6 @@
 package com.sandeep.calculator
 
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.AlarmClock.EXTRA_MESSAGE
 import android.view.Menu
@@ -9,6 +8,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
 //import android.widget.EditText
 //import android.widget.TextView
 import java.lang.NumberFormatException
@@ -160,7 +160,7 @@ class MainActivity : AppCompatActivity() {
             null
         }
 
-        pendingOperation = savedInstanceState.getString(STATE_PENDING_OPERATION)
+        pendingOperation = savedInstanceState.getString(STATE_PENDING_OPERATION).toString()
         operation.text = pendingOperation
     }
 
