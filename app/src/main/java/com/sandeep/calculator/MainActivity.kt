@@ -2,22 +2,19 @@ package com.sandeep.calculator
 
 import android.content.Intent
 import android.os.Bundle
-import android.provider.AlarmClock.EXTRA_MESSAGE
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-//import android.widget.EditText
-//import android.widget.TextView
-import java.lang.NumberFormatException
-
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.activity_main.*
 
-private const val STATE_PENDING_OPERATION = "PendingOperation"
+/*private const val STATE_PENDING_OPERATION = "PendingOperation"
 private const val STATE_OPERAND1 = "Operand1"
-private const val STATE_OPERAND1_STORED = "Operand1_Stored"
+private const val STATE_OPERAND1_STORED = "Operand1_Stored"*/
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,14 +23,17 @@ class MainActivity : AppCompatActivity() {
 //    private val displayOperation by lazy(LazyThreadSafetyMode.NONE) { findViewById<TextView>(R.id.operation) }
 
     //variable to hold operands and type calculation
-    private var operand1: Double? = null
-    // private var operand2: Double = 0.0
 
-    private var pendingOperation = "="
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        //val viewModel = ViewModelProviders.of(this).get(CalculatorViewModel::class.java)
+        val viewModel = ViewModelProviders.of(this).get(BigDecimalViewModel::class.java)
+        viewModel.stringResult.observe(this, Observer<String> { stringResult -> result.setText(stringResult) })
+        viewModel.stringNewNumber.observe(this, Observer<String> { stringNumber -> newNumber.setText(stringNumber) })
+        viewModel.stringOperation.observe(this, Observer<String> { stringOperation -> operation.text = stringOperation })
 
 //        result = findViewById(R.id.result)
 //        newNumber = findViewById(R.id.newNumber)
@@ -57,8 +57,9 @@ class MainActivity : AppCompatActivity() {
 //        val buttonPlus = findViewById<Button>(R.id.buttonPlus)
 
         val listener = View.OnClickListener { v ->
-            val b = v as Button
-            newNumber.append(b.text)
+            //val b = v as Button
+            //newNumber.append(b.text)
+            viewModel.digitPressed((v as Button).text.toString())
         }
 
         button0.setOnClickListener(listener)
@@ -74,17 +75,7 @@ class MainActivity : AppCompatActivity() {
         buttonDot.setOnClickListener(listener)
 
         val opListener = View.OnClickListener { v ->
-            val op = (v as Button).text.toString()
-
-            try {
-                val value = newNumber.text.toString().toDouble()
-                performOperation(value, op)
-            } catch (e: NumberFormatException) {
-                newNumber.setText("")
-            }
-
-            pendingOperation = op
-            operation.text = pendingOperation
+            viewModel.operandPressed((v as Button).text.toString())
         }
 
         buttonEquals.setOnClickListener(opListener)
@@ -93,55 +84,15 @@ class MainActivity : AppCompatActivity() {
         buttonMinus.setOnClickListener(opListener)
         buttonPlus.setOnClickListener(opListener)
 
-        buttonNeg.setOnClickListener { view ->
-            val value = newNumber.text.toString()
-            if(value.isEmpty()){
-                newNumber.setText("-")
-            } else {
-                try {
-                    var doubleValue = value.toDouble()
-                    doubleValue *= -1
-                    newNumber.setText(doubleValue.toString())
-                } catch( e: NumberFormatException) {
-                    // newNumber was "-" or ".", so clear it
-                    newNumber.setText("")
-                }
-            }
+        buttonNeg.setOnClickListener {
+            viewModel.negPressed()
+
         }
     }
 
-    private fun performOperation(value: Double, operation: String) {
-        if (operand1 == null) {
-            operand1 = value
-        } else {
 
-            if (pendingOperation == "=") {
-                pendingOperation = operation
-            }
 
-            when (pendingOperation) {
-                "=" -> operand1 = value
-
-                "/" -> operand1 = if (value == 0.0) {
-                    Double.NaN
-                } else {
-                    operand1!! / value
-                }
-
-                "*" -> operand1 = operand1!! * value
-
-                "-" -> operand1 = operand1!! - value
-
-                "+" -> operand1 = operand1!! + value
-            }
-
-        }
-        result.setText(operand1.toString())
-        newNumber.setText("")
-
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
+    /*override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
         if (operand1 != null) {
@@ -162,7 +113,7 @@ class MainActivity : AppCompatActivity() {
 
         pendingOperation = savedInstanceState.getString(STATE_PENDING_OPERATION).toString()
         operation.text = pendingOperation
-    }
+    }*/
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         val inflater: MenuInflater = menuInflater
